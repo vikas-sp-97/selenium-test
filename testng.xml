@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All Test Suite">
+    <test verbose="2" preserve-order="true" name="/Users/vikassp/IdeaProjects/selenium-test">
+        <classes>
+            <class name="com.daft.DaftTest">
+                <methods>
+                    <include name="checkHomePageAccess"/>
+                    <include name="searchBoxInput"/>
+                    <include name="searchResultAreaPage"/>
+                    <include name="sendFilterKeyword"/>
+                    <include name="checkFilteredResult"/>
+                    <include name="checkAnyFilteredRes"/>
+                </methods>
+            </class>
+<!--            <class name="com.daft.AppTest">-->
+<!--                <methods>-->
+<!--                    <include name="shouldAnswerWithTrue"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+        </classes>
+    </test>
+</suite>
