@@ -46,7 +46,7 @@ git clone https://github.com/vikas-sp-97/selenium-test.git
 
 ### Configuration
 
-Before running the tests, make sure you've configured the project:
+Before running the tests, make sure you have configured the project:
 
 1. **Update `testng.xml`**:
    
