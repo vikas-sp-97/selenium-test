@@ -107,6 +107,8 @@ public class DaftTest {
         Assert.assertTrue(searchResult.isDisplayed(), "result header element not found!");
         String res = searchResult.getText();
         log.debug("result header text: " + res);
+
+        Assert.assertTrue(isResultPresent(res), "result not found!");
     }
 
     // Test4: Try to filter the search by keyword
@@ -146,6 +148,7 @@ public class DaftTest {
         log.debug("result text after filter keyword : " + resAfterFilter);
 
         Assert.assertTrue(searchResultAfterFilter.isDisplayed(), "Search result header element not found!");
+        Assert.assertTrue(isResultPresent(resAfterFilter), "no result found after filter!");
 
     }
 
@@ -185,6 +188,25 @@ public class DaftTest {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    // method to check the result is greater than 0 or not
+    private boolean isResultPresent(String res) {
+        String[] resWords = res.split("\\s+");
+        if (resWords.length > 0) {
+            // extract the first word
+            String num = resWords[0];
+
+            try {
+                int resCount = Integer.parseInt(num.replaceAll(",", ""));
+                return resCount > 0;
+            } catch (NumberFormatException e) {
+                log.error("count not displayed in results section, "+e);
+                return false;
+            }
+        } else {
+            return false;
         }
     }
 }
