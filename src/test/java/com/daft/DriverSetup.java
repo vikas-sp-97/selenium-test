@@ -6,10 +6,14 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.safari.SafariDriver;
 
+/**
+ * Class to provide the driver setup
+ * */
 public class DriverSetup {
     static WebDriver getBrowser(String browser) {
         WebDriver driver;
 
+        // returns the driver based on the browser being requested
         switch(browser){
             case "firefox":
                 WebDriverManager.firefoxdriver().setup();

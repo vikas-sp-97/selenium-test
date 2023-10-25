@@ -7,6 +7,8 @@
     <test verbose="2" preserve-order="true" name="/Users/vikassp/IdeaProjects/selenium-test">
         <classes>
             <class name="com.daft.DaftTest">
+                <parameter name = "area" value = "County dublin"/>
+                <parameter name = "filter_keyword" value = "garage"/>
                 <methods>
                     <include name="checkHomePageAccess"/>
                     <include name="searchBoxInput"/>
@@ -16,11 +18,6 @@
                     <include name="checkAnyFilteredRes"/>
                 </methods>
             </class>
-<!--            <class name="com.daft.AppTest">-->
-<!--                <methods>-->
-<!--                    <include name="shouldAnswerWithTrue"/>-->
-<!--                </methods>-->
-<!--            </class>-->
         </classes>
     </test>
 </suite>

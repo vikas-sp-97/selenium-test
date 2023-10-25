@@ -19,7 +19,22 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Properties;
 
+/**
+ * This is the main test class that includes all the test cases
+ *
+ * NOTE: As the requirement is to conduct end-to-end test for page navigation, following steps are considered:
+ * 1. All the test are run in single instance (Invocation of driver is carried out at Suite level)
+ * 2. Page navigation is considered to have dependency on working flow of previous page
+ * (ex: if search area test case fails, then rest of the test cases are skipped)
+ * 3. Verification of keyword filtered result is carried out over the post description
+ * (Title or other factors are not considered for verifying presence of filtered keyword)
+ *
+ * Although above constraints can be removed depending on the feature to be tested.
+ */
+
 public class DaftTest {
+
+    // Initialising the local variables
     WebDriver driver;
     Wait<WebDriver> wait;
 
@@ -30,6 +45,8 @@ public class DaftTest {
 
     private static String BASE_URL;
 
+
+    // Setting up the driver
     @BeforeSuite
     @Parameters({"base_url", "browser", "wait_duration"})
     public void setUp(String base_url, String browser, Integer wait_duration) {
@@ -43,6 +60,7 @@ public class DaftTest {
     }
 
 
+    // Test1: Access the home page of daft.ie
     @Test(priority = 1, groups = "homepage")
     public void checkHomePageAccess() {
 
@@ -59,11 +77,13 @@ public class DaftTest {
 
     }
 
+    // Test2: Provide the area, where user wants to check for ads
     @Test(priority = 2, groups = "homepage", dependsOnMethods = "checkHomePageAccess")
-    public void searchBoxInput() {
+    @Parameters({"area"})
+    // parsing 'County dublin' as area
+    public void searchBoxInput(String area) {
         log.info("Started test for search box");
 
-        String area = "county dublin";
         WebElement areaSearchBox = driver.findElement(By.id(properties.getProperty("search_box_input_id")));
         log.debug("attempting to send area to search text box");
         areaSearchBox.sendKeys(area);
@@ -73,6 +93,7 @@ public class DaftTest {
         log.info("executing search from homepage for area: " + area);
     }
 
+    // Test3: Check for the result of area search
     @Test(priority = 3, dependsOnGroups = "homepage")
     public void searchResultAreaPage() {
         log.info("Started test for search result page");
@@ -88,8 +109,12 @@ public class DaftTest {
         log.debug("result header text: " + res);
     }
 
+    // Test4: Try to filter the search by keyword
     @Test(priority = 4, dependsOnGroups = "homepage")
-    public void sendFilterKeyword() {
+    @Parameters({"filter_keyword"})
+    // parsing 'garage' as filter_keyword
+    // for multiple cases we can use dataProvider and run DDT
+    public void sendFilterKeyword(String filter_keyword) {
         log.info("Started test for filter section");
 
         WebElement filterButton = driver.findElement(By.xpath(properties.getProperty("filter_button_xpath")));
@@ -100,10 +125,11 @@ public class DaftTest {
 
         threadWait();
         WebElement filterKeywordBox = driver.findElement(By.id(properties.getProperty("filter_keyword_box_id")));
-        filterKeywordBox.sendKeys("garage");
+        filterKeywordBox.sendKeys(filter_keyword);
 
     }
 
+    // Test5: Check for results after filtering by keyword
     @Test(priority = 5, dependsOnMethods = "sendFilterKeyword")
     public void checkFilteredResult() {
         log.info("Started test for filtered result");
@@ -123,10 +149,12 @@ public class DaftTest {
 
     }
 
+    // Test6: verify one of the result if it contains keyword in the description
     @Test(priority = 6, dependsOnMethods = "checkFilteredResult")
-    public void checkAnyFilteredRes() {
+    @Parameters({"filter_keyword"})
+    // parsing 'garage' as filter_keyword
+    public void checkAnyFilteredRes(String filter_keyword) {
         log.info("Started test for verifying any one filtered result");
-        String keyword = "garage";
 
         threadWait();
         WebElement resElement = driver.findElement(By.xpath(properties.getProperty("result_element_xpath")));
@@ -140,15 +168,18 @@ public class DaftTest {
         log.debug("retrieving post description");
         String desc = adDescription.getText().toLowerCase(Locale.ROOT);
 
-        Assert.assertTrue(desc.contains(keyword), "ad description doesn't contain keyword: " + keyword);
+        Assert.assertTrue(desc.contains(filter_keyword), "ad description doesn't contain keyword: " + filter_keyword);
     }
 
+    // Quit the driver after the test execution
     @AfterSuite
     public void tearDown() {
         driver.quit();
         log.info("Quitting driver. \nTest ended.");
     }
 
+    // method used to provided wait time
+    // Not using Implicit wait as explicit wait has been used above
     public static void threadWait() {
         try {
             Thread.sleep(1000);
