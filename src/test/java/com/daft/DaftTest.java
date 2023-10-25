@@ -1,12 +1,9 @@
 package com.daft;
 
-
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -15,122 +12,148 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Locale;
+import java.util.Properties;
 
 public class DaftTest {
     WebDriver driver;
     Wait<WebDriver> wait;
 
+    TestUtilities testUtil = new TestUtilities();
+    Properties properties = testUtil.getProperties();
+
     Logger log = LoggerFactory.getLogger(DaftTest.class);
 
-    public static final String BASE_URL = "https://www.daft.ie/";
-
+    private static String BASE_URL;
 
     @BeforeSuite
-    public void setUp(){
+    @Parameters({"base_url", "browser", "wait_duration"})
+    public void setUp(String base_url, String browser, Integer wait_duration) {
         log.info("Started setup for the driver..");
-        WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        driver = DriverSetup.getBrowser(browser);
+        log.debug("driver setup complete");
+        wait = new WebDriverWait(driver, Duration.ofSeconds(wait_duration));
+        BASE_URL = base_url;
+        driver.manage().window().maximize();
         driver.get(BASE_URL);
     }
 
-    @Test(priority = 1, groups = "homepage")
-    public void checkHomePageAccess(){
-        WebElement acceptButton = driver.findElement(By.id("didomi-notice-agree-button"));
 
+    @Test(priority = 1, groups = "homepage")
+    public void checkHomePageAccess() {
+
+        log.info("Started test for the homepage");
+
+        WebElement acceptButton = driver.findElement(By.id(properties.getProperty("accept_button_id")));
         wait.until(d -> acceptButton.isDisplayed());
 
+        log.debug("attempting accept button click");
         acceptButton.click();
 
         String url = driver.getCurrentUrl();
-        Assert.assertEquals(url, BASE_URL);
+        Assert.assertEquals(url, BASE_URL, "url mismatch!");
+
     }
 
-    @Test(priority = 2 , groups = "homepage", dependsOnMethods = "checkHomePageAccess")
-    public void searchBoxInput(){
-        WebElement areaSearchBox = driver.findElement(By.id("search-box-input"));
-        areaSearchBox.sendKeys("county dublin");
+    @Test(priority = 2, groups = "homepage", dependsOnMethods = "checkHomePageAccess")
+    public void searchBoxInput() {
+        log.info("Started test for search box");
 
-        try {
-            Thread.sleep(1000);
-            areaSearchBox.sendKeys(Keys.RETURN);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        String area = "county dublin";
+        WebElement areaSearchBox = driver.findElement(By.id(properties.getProperty("search_box_input_id")));
+        log.debug("attempting to send area to search text box");
+        areaSearchBox.sendKeys(area);
+
+        threadWait();
+        areaSearchBox.sendKeys(Keys.RETURN);
+        log.info("executing search from homepage for area: " + area);
     }
 
     @Test(priority = 3, dependsOnGroups = "homepage")
-    public void searchResultAreaPage(){
-        wait.until(ExpectedConditions.urlToBe(BASE_URL+"property-for-sale/dublin"));
+    public void searchResultAreaPage() {
+        log.info("Started test for search result page");
 
-        WebElement searchResult = driver.findElement(By.xpath("//h1[@class='styles__SearchH1-sc-1t5gb6v-3 guZHZl']"));
+        threadWait();
+        wait.until(ExpectedConditions.urlToBe(BASE_URL + "property-for-sale/dublin"));
+
+        WebElement searchResult = driver.findElement(By.xpath(properties.getProperty("search_result_header_xpath")));
         wait.until(d -> searchResult.isDisplayed());
 
+        Assert.assertTrue(searchResult.isDisplayed(), "result header element not found!");
         String res = searchResult.getText();
-        System.out.println(Arrays.toString(res.split(" ")));
+        log.debug("result header text: " + res);
     }
 
     @Test(priority = 4, dependsOnGroups = "homepage")
-    public void sendFilterKeyword(){
-        WebElement filterButton = driver.findElement(By.xpath("//button[@aria-label='Filters']/span[@class='NewButton__ButtonText-yem86a-0 cIVIcD']"));
+    public void sendFilterKeyword() {
+        log.info("Started test for filter section");
+
+        WebElement filterButton = driver.findElement(By.xpath(properties.getProperty("filter_button_xpath")));
         wait.until(d -> filterButton.isDisplayed());
 
+        log.debug("attempting to access filter section");
         filterButton.click();
 
-        try {
-            Thread.sleep(1000);
-            WebElement filterKeywordBox = driver.findElement(By.id("keywordtermsModal"));
-            filterKeywordBox.sendKeys("garage");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        threadWait();
+        WebElement filterKeywordBox = driver.findElement(By.id(properties.getProperty("filter_keyword_box_id")));
+        filterKeywordBox.sendKeys("garage");
+
     }
 
     @Test(priority = 5, dependsOnMethods = "sendFilterKeyword")
-    public void checkFilteredResult(){
-        WebElement filterResButton = driver.findElement(By.xpath("//button[@class='NewButton__StyledButton-yem86a-2 klRAtd']"));
+    public void checkFilteredResult() {
+        log.info("Started test for filtered result");
+
+        WebElement filterResButton = driver.findElement(By.xpath(properties.getProperty("filter_result_button_xpath")));
+        log.debug("attempting filter button click");
         filterResButton.click();
 
-        try {
-            Thread.sleep(1000);
-            WebElement searchResultAfterFilter = driver.findElement(By.xpath("//h1[@class='styles__SearchH1-sc-1t5gb6v-3 guZHZl']"));
-            wait.until(d -> searchResultAfterFilter.isDisplayed());
+        threadWait();
+        WebElement searchResultAfterFilter = driver.findElement(By.xpath(properties.getProperty("search_result_header_element_xpath")));
+        wait.until(d -> searchResultAfterFilter.isDisplayed());
 
-            String resAfterFilter = searchResultAfterFilter.getText();
-            System.out.println("----");
-            System.out.println(Arrays.toString(resAfterFilter.split(" ")));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        String resAfterFilter = searchResultAfterFilter.getText();
+        log.debug("result text after filter keyword : " + resAfterFilter);
+
+        Assert.assertTrue(searchResultAfterFilter.isDisplayed(), "Search result header element not found!");
+
     }
 
     @Test(priority = 6, dependsOnMethods = "checkFilteredResult")
-    public void checkAnyFilteredRes(){
-        try {
-            Thread.sleep(1000);
-            WebElement resElement = driver.findElement(By.xpath("//div[@class='SearchPagestyled__MainColumn-v8jvjf-0 jkVJyK']/ul/li[1]"));
-            resElement.click();
+    public void checkAnyFilteredRes() {
+        log.info("Started test for verifying any one filtered result");
+        String keyword = "garage";
 
-            Thread.sleep(1000);
-            WebElement adDescription = driver.findElement(By.xpath("//div[@class='styles__StandardParagraph-sc-15fxapi-8 eMCuSm']"));
-            wait.until(d -> adDescription.isDisplayed());
+        threadWait();
+        WebElement resElement = driver.findElement(By.xpath(properties.getProperty("result_element_xpath")));
+        log.debug("attempt to access a result from the posts");
+        resElement.click();
 
-            String desc = adDescription.getText().toLowerCase(Locale.ROOT);
+        threadWait();
+        WebElement adDescription = driver.findElement(By.xpath(properties.getProperty("result_ad_description_xpath")));
+        wait.until(d -> adDescription.isDisplayed());
 
-            Assert.assertTrue(desc.contains("garage"));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        log.debug("retrieving post description");
+        String desc = adDescription.getText().toLowerCase(Locale.ROOT);
+
+        Assert.assertTrue(desc.contains(keyword), "ad description doesn't contain keyword: " + keyword);
     }
 
     @AfterSuite
-    public void tearDown(){
+    public void tearDown() {
         driver.quit();
         log.info("Quitting driver. \nTest ended.");
+    }
+
+    public static void threadWait() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Failed suite [All Test Suite]" guice-stage="DEVELOPMENT">
+  <parameter name="browser" value="chrome"/>
+  <parameter name="base_url" value="https://www.daft.ie/"/>
+  <parameter name="wait_duration" value="10"/>
+  <test thread-count="5" name="/Users/vikassp/IdeaProjects/selenium-test(failed)">
+    <classes>
+      <class name="com.daft.DaftTest">
+        <methods>
+          <include name="tearDown"/>
+          <include name="checkAnyFilteredRes"/>
+          <include name="checkHomePageAccess"/>
+          <include name="searchBoxInput"/>
+          <include name="searchResultAreaPage"/>
+          <include name="setUp"/>
+          <include name="checkFilteredResult"/>
+          <include name="sendFilterKeyword"/>
+        </methods>
+      </class> <!-- com.daft.DaftTest -->
+    </classes>
+  </test> <!-- /Users/vikassp/IdeaProjects/selenium-test(failed) -->
+</suite> <!-- Failed suite [All Test Suite] -->
